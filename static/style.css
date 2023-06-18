@@ -109,12 +109,12 @@ body{
     color: #ffffff !important;
 }
 
-#question:focus{
+input:focus, textarea:focus{
     border: 1px solid #ffffff !important;
     outline: none;
 }
 
-form{
+#chat {
     position: fixed;
     display: block;
     bottom: 50px;
@@ -223,7 +223,7 @@ form{
     top:0 !important;
   }
 
-  .code-header button {
+  .code-header button, button {
     background-color: #040916;
     color: #ffffff;
     border: none;
@@ -232,8 +232,68 @@ form{
    height: 30px;
    width: 45%
   }
-
   
+  #loginBtn{
+    background-color: #ffffff;
+    color: #040916 ;
+    width: 100%!important;
+  }
+  #login{
+    position: absolute;
+    display: flex;
+    width: 100vw;
+    height: 90vh;
+    background-color:  #040916;
+    background-image: radial-gradient(#1f2638 0.4px, transparent 10%);
+    background-size: var(--dot-size);
+    background-position: var(--bg-pos);
+    margin: 0 auto;
+    padding: 0;
+    z-index: 10000;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+  #login h1{
+    position: relative;
+
+  }
+  #loginForm{
+    position: relative;
+    align-self: center;
+    justify-self: center;
+  }
+  #login input{
+    position: relative;
+    box-sizing: border-box;
+    height: 30px;
+    overflow: auto;
+    padding: 10px;
+    background-color:#040916;
+    border: 1px solid #ffffff;
+    border-radius: calc(var(--corners) * 0.6);
+    color: #ffffff !important;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  #login img{
+    width: 20vw;
+  }
+  #loginField{
+    width: 40vw !important;
+    word-wrap: break-word;
+  }
+  
+  #error{
+    display: none;
+    color: #08d5a6;
+  }
+
+  #connecting{
+    font-size: 4vw;
+    display: none;
+  }
   /* Code content styles */
 
   

@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import mindsdb_sdk
 import sys
+import threading
+import webbrowser
+
 
 app = Flask(__name__)
 
@@ -23,23 +26,28 @@ def login():
         return jsonify({"success": False, "error": str(e)})
 
 server=""
-project=""
+project=None
 conversation=[]
 threshold = [25000,1024 * 1024] #set threshold to 25000 characters and 1mb storage memory
 
 @app.route("/setup_page", methods=["POST"])
 def setupConnection():
-    email = request.json["email"]
-    password = request.json["password"]
-    server = mindsdb_sdk.connect('https://cloud.mindsdb.com', login=email, password=password)
-    project = server.get_project('mindsdb')
-    
-    # Initialize the conversation
-    conversation = [
-        {"role": "system", "content": "You are a helpful assistant like Micheal Scott with the intelligence of Albert Einstein."},
-        {"role": "user", "content": "Hello"},
-        {"role": "assistant", "content": "Hello, how can I help you"},]
-
+    global project, conversation  # Use the global keyword to update the global variables
+    try:
+        email = request.json["email"]
+        password = request.json["password"]
+        server = mindsdb_sdk.connect('https://cloud.mindsdb.com', login=email, password=password)
+        project = server.get_project('mindsdb')
+        print("project connected")
+        # Initialize the conversation
+        conversation = [
+            {"role": "system", "content": "You are a helpful assistant like Micheal Scott with the intelligence of Albert Einstein."},
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hello, how can I help you"},]
+        print("setup")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 # Function to get size of the input text
 def store(text):
@@ -97,12 +105,20 @@ def call_chattie(question):
 @app.route('/submit', methods=['POST'])
 def submit():
     # Get the data from the chat
-    input_data = request.form['input'] 
+    input_data = request.form['question'] 
     response = call_chattie(input_data) # Call the call_chattie function with the input data
     
     return response
 
+def run_flask_server():
+    app.run()
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    url = "http://127.0.0.1:5000/"
+    # Open the URL in the web browser
+    webbrowser.open(url)
+    # Run the Flask server in a separate thread to avoid opening the url twice
+    server_thread = threading.Thread(target=run_flask_server)
+    server_thread.start()
 
 

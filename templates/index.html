@@ -12,19 +12,8 @@
 
   <body>
 
-      <div id="login" >
-        <h1>Login</h1>
-        <form id="loginForm">
-            <label for="email">Email:</label>
-            <input type="email" id="email" required><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" required><br>
-            <button type="submit">Login</button>
-        </form>
-      </div>
 
-
-      <form id="myForm" method="POST" action="{{ url_for('submit') }}">
+      <form id="chat">
           <textarea id="question" type="text" name="input" placeholder="Do you know what's the worst about prison?"  autocomplete="off"></textarea>
           <button id="submit" type="submit">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-rocket-takeoff" viewBox="0 0 16 16">
@@ -38,33 +27,97 @@
       <div id="conversation"></div>
       <div id="blocker"></div>
 
+
+      <div id="login" >
+        <div id="loginField">
+          <h1>Login to mindsDB</h1>
+          <img src="https://uploads-ssl.webflow.com/62a8755be8bcc86e6307def8/634af4c6bca0d233ef86835a_Mindsdb%20white%20logo.png" alt="mindsdblogo">
+          <p>To be able to use the chatbot you must once per browser session insert your login credentials for mindsDB. This will be stored in your browser session storage and is then always used to access the mindsDB database.</p>
+          <form id="loginForm">
+              <input type="email" id="email" placeholder="e-mail" required><br>
+              <input type="password" id="password" placeholder="password" required><br>
+              <p id="error">There could be no account found at MindsDB under the given username and password, please try again!</p>
+              <button id="loginBtn" type="submit">Login</button>
+          </form>
+       </div>
+       <p id="connecting">Connecting to GPT4...</p>
+      </div>
+
+
     <script>
 
-      document.getElementById("loginForm").addEventListener("submit", function(event) {
-          event.preventDefault(); // prevent the form from submitting
+      const login=$("#login")
+      let loggedin=sessionStorage.getItem("mindsdb")
+      //console.log(JSON.stringify({ "email": loggedin[0], "password": loggedin[1]}))
 
-          var email = document.getElementById("email").value;
-          var password = document.getElementById("password").value;
 
-          // Make an AJAX request to the server to verify login credentials
-          $.ajax({
-          type: 'POST',
-          url: '/login_endpoint',
-          data: JSON.stringify({ email: email, password: password }),
-          contentType: 'application/json', 
-          success: function (response) {
-            let data= response.json()
-            console.log(data)
-              localStorage.setItem("mindsdb", ["example@example.com", "mypassword"]);
-              // Hide the login page and show the main content
-              //document.getElementById("loginForm").style.display = "none";
-          },
-          error: function(error) {
-            alert("Invalid login credentials. Please try again.");
-            console.error("Error:", error);
-          }
+      function loginFun(){
+        document.getElementById("loginForm").addEventListener("submit", (event)=> {
+            event.preventDefault(); // prevent the form from submitting
+
+            var email = $("#email").val();
+            var password = $("#password").val();
+            console.log(email,password)
+            $("#password").val("");
+
+            // Make an AJAX request to the server to verify login credentials
+            $.ajax({
+            type: 'POST',
+            url: '/login_endpoint',
+            data: JSON.stringify({ "email": email, "password": password }),
+            contentType: 'application/json', 
+            success: function (response) {
+              console.log(response)
+              if(response.success==false){
+                $("#error").show()
+              }
+              else{
+                //console.log(response)
+                $.ajax({
+                    type: 'POST',
+                    url: '/setup_page',
+                    data: JSON.stringify({ "email": email, "password": password}),
+                    contentType: 'application/json'
+                });
+                $("#error").hide()
+                //set the local variable mindsdb to password and email inserted
+                sessionStorage.setItem("mindsdb", [email, password]);
+                login.hide()
+              }
+
+            },
+            error: function(error) {
+              $("#error").show()
+            }
+          });
         });
-      });
+      }
+
+
+
+      if(!loggedin){
+        loginFun();
+      }
+      else{
+        loggedin=loggedin.split(",")
+        $("#loginField").hide()
+        $("#connecting").show()
+        $.ajax({
+            type: 'POST',
+            url: '/setup_page',
+            data: JSON.stringify({ "email": loggedin[0], "password": loggedin[1]}),
+            contentType: 'application/json',
+            success: function (response) {
+              console.log("trying")
+              if(response.success==true){
+                login.hide()
+              }
+              else{
+                loginFun();
+              }
+            }
+        });
+      }
 
 
 
@@ -115,7 +168,6 @@
 
       function submitQuery(form) {
 
-        var formData = form.serialize();
         const question = $("#question").val();
         const blocker = document.getElementById("blocker");
         const conv_wrapper = $('#conversation');
@@ -146,7 +198,7 @@
         $.ajax({
           type: 'POST',
           url: '/submit',
-          data: formData,
+          data: { question: question },
           success: function (response) {
               spinner.hide();
             const split = splitCodeAndText(response);
@@ -199,22 +251,22 @@
         input.style.height="2rem";
       }
 
-              // Handle the form submission
-              $('#myForm').submit(function(event) {
-                  event.preventDefault();  // Prevent default form submission
-                  var form = $(this);
-                  submitQuery(form);
-              });
+      // Handle the form submission
+      $('#myForm').submit(function(event) {
+          event.preventDefault();  // Prevent default form submission
+          var form = $(this);
+          submitQuery(form);
+      });
 
 
-              // Submit on Enter key press
-              $('#question').keydown(function(event) {
-                  if (event.keyCode === 13 && event.ctrlKey) {
-                      event.preventDefault(); // Prevent the default form submission
-                      var form = $('#myForm');
-                      submitQuery(form);
-                  }
-              });
+      // Submit on Enter key press
+      $('#question').keydown(function(event) {
+          if (event.keyCode === 13 && event.ctrlKey) {
+              event.preventDefault(); // Prevent the default form submission
+              var form = $('#myForm');
+              submitQuery(form);
+          }
+      });
 
       function adjustInputHeight() {
           input.style.height = ""; // Reset the height to calculate the scrollHeight accurately
