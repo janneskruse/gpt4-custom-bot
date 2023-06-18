@@ -4,44 +4,26 @@
   <head>
     <title>GPT4 </title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='./style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js" integrity="sha512-rdhY3cbXURo13l/WU9VlaRyaIYeJ/KBakckXIvJNAQde8DgpOmE+eZf7ha4vdqVjTtwQt69bD2wH2LXob/LB7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='./favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/go.min.js"></script>
-
-    <script src="login.js">
-
-      document.getElementById("loginForm").addEventListener("submit", function(event) {
-          event.preventDefault(); // prevent the form from submitting
-
-          var email = document.getElementById("email").value;
-          var password = document.getElementById("password").value;
-
-          // Make an AJAX request to the server to verify login credentials
-          fetch("login_endpoint", {
-              method: "POST",
-              body: JSON.stringify({ email: email, password: password }),
-              headers: {
-              "Content-Type": "application/json"
-              }
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-              // Hide the login page and show the main content
-              document.getElementById("loginForm").style.display = "none";
-              } else {
-              alert("Invalid login credentials. Please try again.");
-              }
-          })
-          .catch(error => {
-              console.error("Error:", error);
-          });
-      });
-    </script>
   </head>
 
   <body>
+
+      <div id="login" >
+        <h1>Login</h1>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required><br>
+            <button type="submit">Login</button>
+        </form>
+      </div>
+
+
       <form id="myForm" method="POST" action="{{ url_for('submit') }}">
           <textarea id="question" type="text" name="input" placeholder="Do you know what's the worst about prison?"  autocomplete="off"></textarea>
           <button id="submit" type="submit">
@@ -57,6 +39,37 @@
       <div id="blocker"></div>
 
     <script>
+
+      document.getElementById("loginForm").addEventListener("submit", function(event) {
+          event.preventDefault(); // prevent the form from submitting
+
+          var email = document.getElementById("email").value;
+          var password = document.getElementById("password").value;
+
+          // Make an AJAX request to the server to verify login credentials
+          $.ajax({
+          type: 'POST',
+          url: '/login_endpoint',
+          data: JSON.stringify({ email: email, password: password }),
+          contentType: 'application/json', 
+          success: function (response) {
+            let data= response.json()
+            console.log(data)
+              localStorage.setItem("mindsdb", ["example@example.com", "mypassword"]);
+              // Hide the login page and show the main content
+              //document.getElementById("loginForm").style.display = "none";
+          },
+          error: function(error) {
+            alert("Invalid login credentials. Please try again.");
+            console.error("Error:", error);
+          }
+        });
+      });
+
+
+
+
+
       function splitCodeAndText(text) {
         const codeDelimiter = "```";
         const parts = text.split(codeDelimiter);
@@ -86,19 +99,6 @@
 
 
 
-      document.addEventListener("DOMContentLoaded", function() {
-          // Make an AJAX request to reset the conversation
-          var xhr = new XMLHttpRequest();
-          xhr.open("GET", "/reset_conversation", true);
-          xhr.onreadystatechange = function() {
-              if (xhr.readyState === 4 && xhr.status === 200) {
-                  console.log("Conversation reset");
-              }
-          };
-          xhr.send();
-      });
-
-
       const input = document.getElementById("question");
 
       const mindsdblogo = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
@@ -115,7 +115,6 @@
 
       function submitQuery(form) {
 
-        var url = form.attr('action');
         var formData = form.serialize();
         const question = $("#question").val();
         const blocker = document.getElementById("blocker");
@@ -146,7 +145,7 @@
         // Send the form data to the server using AJAX
         $.ajax({
           type: 'POST',
-          url: url,
+          url: '/submit',
           data: formData,
           success: function (response) {
               spinner.hide();
