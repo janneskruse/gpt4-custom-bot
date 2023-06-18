@@ -3,6 +3,8 @@
 ## Description
 This project creates a gpt-4 chatbot from [OpenAI's](https://github.com/openai) GPT-4 model using third party provider [mindsdb](https://mindsdb.com). It is not a deployment ready application and not intended to replace OpenAIs gpt4 functionality but rather for educational purpose. However, you can use it to learn about GPT-4, customize your own chatbot and compare it against the GPT 3.5 model.
 
+![](example.png)
+
 To use the chatbot follow the instructions below!
 
 ## Installation
