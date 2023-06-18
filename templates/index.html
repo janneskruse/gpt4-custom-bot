@@ -1,0 +1,230 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GPT4 </title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='./style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js" integrity="sha512-rdhY3cbXURo13l/WU9VlaRyaIYeJ/KBakckXIvJNAQde8DgpOmE+eZf7ha4vdqVjTtwQt69bD2wH2LXob/LB7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='./favicon.png') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/go.min.js"></script>
+
+    <script src="login.js">
+
+      document.getElementById("loginForm").addEventListener("submit", function(event) {
+          event.preventDefault(); // prevent the form from submitting
+
+          var email = document.getElementById("email").value;
+          var password = document.getElementById("password").value;
+
+          // Make an AJAX request to the server to verify login credentials
+          fetch("login_endpoint", {
+              method: "POST",
+              body: JSON.stringify({ email: email, password: password }),
+              headers: {
+              "Content-Type": "application/json"
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+              // Hide the login page and show the main content
+              document.getElementById("loginForm").style.display = "none";
+              } else {
+              alert("Invalid login credentials. Please try again.");
+              }
+          })
+          .catch(error => {
+              console.error("Error:", error);
+          });
+      });
+    </script>
+  </head>
+
+  <body>
+      <form id="myForm" method="POST" action="{{ url_for('submit') }}">
+          <textarea id="question" type="text" name="input" placeholder="Do you know what's the worst about prison?"  autocomplete="off"></textarea>
+          <button id="submit" type="submit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-rocket-takeoff" viewBox="0 0 16 16">
+                  <path d="M9.752 6.193c.599.6 1.73.437 2.528-.362.798-.799.96-1.932.362-2.531-.599-.6-1.73-.438-2.528.361-.798.8-.96 1.933-.362 2.532Z"/>
+                  <path d="M15.811 3.312c-.363 1.534-1.334 3.626-3.64 6.218l-.24 2.408a2.56 2.56 0 0 1-.732 1.526L8.817 15.85a.51.51 0 0 1-.867-.434l.27-1.899c.04-.28-.013-.593-.131-.956a9.42 9.42 0 0 0-.249-.657l-.082-.202c-.815-.197-1.578-.662-2.191-1.277-.614-.615-1.079-1.379-1.275-2.195l-.203-.083a9.556 9.556 0 0 0-.655-.248c-.363-.119-.675-.172-.955-.132l-1.896.27A.51.51 0 0 1 .15 7.17l2.382-2.386c.41-.41.947-.67 1.524-.734h.006l2.4-.238C9.005 1.55 11.087.582 12.623.208c.89-.217 1.59-.232 2.08-.188.244.023.435.06.57.093.067.017.12.033.16.045.184.06.279.13.351.295l.029.073a3.475 3.475 0 0 1 .157.721c.055.485.051 1.178-.159 2.065Zm-4.828 7.475.04-.04-.107 1.081a1.536 1.536 0 0 1-.44.913l-1.298 1.3.054-.38c.072-.506-.034-.993-.172-1.418a8.548 8.548 0 0 0-.164-.45c.738-.065 1.462-.38 2.087-1.006ZM5.205 5c-.625.626-.94 1.351-1.004 2.09a8.497 8.497 0 0 0-.45-.164c-.424-.138-.91-.244-1.416-.172l-.38.054 1.3-1.3c.245-.246.566-.401.91-.44l1.08-.107-.04.039Zm9.406-3.961c-.38-.034-.967-.027-1.746.163-1.558.38-3.917 1.496-6.937 4.521-.62.62-.799 1.34-.687 2.051.107.676.483 1.362 1.048 1.928.564.565 1.25.941 1.924 1.049.71.112 1.429-.067 2.048-.688 3.079-3.083 4.192-5.444 4.556-6.987.183-.771.18-1.345.138-1.713a2.835 2.835 0 0 0-.045-.283 3.078 3.078 0 0 0-.3-.041Z"/>
+                  <path d="M7.009 12.139a7.632 7.632 0 0 1-1.804-1.352A7.568 7.568 0 0 1 3.794 8.86c-1.102.992-1.965 5.054-1.839 5.18.125.126 3.936-.896 5.054-1.902Z"/>
+                </svg>
+          </button>
+      </form>
+
+      <div id="conversation"></div>
+      <div id="blocker"></div>
+
+    <script>
+      function splitCodeAndText(text) {
+        const codeDelimiter = "```";
+        const parts = text.split(codeDelimiter);
+        const result = [];
+        
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i].trim();
+          
+          if (i % 2 === 0) {
+            result.push({ type: "text", content: part });
+          } else {
+            const language = part.split(/\s+/)[0];
+            const code = part.replace(/^\w+\s*/, "");
+            result.push({ type: "code", language, code });
+          }
+        }
+        
+        return result;
+      }
+
+
+      function addScriptCode(code) {
+        const script = document.createElement('script');
+        script.textContent = code;
+        document.head.appendChild(script);
+      }
+
+
+
+      document.addEventListener("DOMContentLoaded", function() {
+          // Make an AJAX request to reset the conversation
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/reset_conversation", true);
+          xhr.onreadystatechange = function() {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                  console.log("Conversation reset");
+              }
+          };
+          xhr.send();
+      });
+
+
+      const input = document.getElementById("question");
+
+      const mindsdblogo = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                  <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
+                  <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
+                  </svg>`;
+
+
+      const personallogo = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-globe-americas" viewBox="0 0 16 16"> <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM2.04 4.326c.325 1.329 2.532 2.54 3.717 3.19.48.263.793.434.743.484-.08.08-.162.158-.242.234-.416.396-.787.749-.758 1.266.035.634.618.824 1.214 1.017.577.188 1.168.38 1.286.983.082.417-.075.988-.22 1.52-.215.782-.406 1.48.22 1.48 1.5-.5 3.798-3.186 4-5 .138-1.243-2-2-3.5-2.5-.478-.16-.755.081-.99.284-.172.15-.322.279-.51.216-.445-.148-2.5-2-1.5-2.5.78-.39.952-.171 1.227.182.078.099.163.208.273.318.609.304.662-.132.723-.633.039-.322.081-.671.277-.867.434-.434 1.265-.791 2.028-1.12.712-.306 1.365-.587 1.579-.88A7 7 0 1 1 2.04 4.327Z"/></svg>`;
+
+
+
+      let quests=0
+
+      function submitQuery(form) {
+
+        var url = form.attr('action');
+        var formData = form.serialize();
+        const question = $("#question").val();
+        const blocker = document.getElementById("blocker");
+        const conv_wrapper = $('#conversation');
+
+        const question_div = $('<div>', { class: 'questiondiv' }).appendTo(conv_wrapper);
+        $('<div>', { class: 'logobox', html: personallogo }).appendTo(question_div);
+        $('<p>', { text: question }).appendTo(question_div);
+
+          const response_div = $('<div>', { class: 'responsediv' }).appendTo(conv_wrapper);
+        $('<div>', { class: 'logobox', html: mindsdblogo }).appendTo(response_div);
+          const spinner = $('<div>', { id: 'spinner', class: 'spinner' });
+          const dot1 = $('<div>', { class: 'dot1' });
+          const dot2 = $('<div>', { class: 'dot2' });
+          const dot3 = $('<div>', { class: 'dot3' });
+
+          spinner.append(dot1, dot2, dot3);
+          response_div.append(spinner);
+          spinner.show();
+
+        blocker.style.height = "20vh";
+        blocker.style.bottom = 0;
+        if (quests == 0) {
+          blocker.style.position = "fixed";
+          quests = 1;
+        }
+
+        // Send the form data to the server using AJAX
+        $.ajax({
+          type: 'POST',
+          url: url,
+          data: formData,
+          success: function (response) {
+              spinner.hide();
+            const split = splitCodeAndText(response);
+            console.log(split);
+            if (split.length > 0) {
+              const fragment = document.createDocumentFragment();
+
+              for (let i = 0; i < split.length; i++) {
+                  const item = split[i];
+                if (item.type == "code") {
+                  const codecell = $('<div>', { class: 'code-cell' });
+                  const header = $('<div>', { class: 'code-header' });
+                  $('<p>', { text: item.language }).appendTo(header);
+                  const copyButton = $('<button>', { text: 'Copy to Clipboard' }).appendTo(header);
+                  header.on('click', 'button', function () {
+                    navigator.clipboard.writeText(item.code);
+                    copyButton.text('Code copied');
+                      setTimeout(function () {
+                          copyButton.text('Copy to Clipboard');
+                      }, 3000);
+                  });
+                  codecell.append(header);
+                  const codecontent = $('<div>', { class: 'code-content' });
+                  const preElement = $('<pre>');
+                  const codeElement = $('<code>', { class: item.language + ' code', text: item.code });
+                  preElement.append(codeElement);
+                  codecontent.append(preElement);
+                  codecell.append(codecontent);
+                  fragment.appendChild(codecell[0]);
+                  response_div.append(fragment);
+                } else {
+                  const response_p = $('<p>', { text: item.content });
+                  response_div.append(response_p);
+                }
+              };
+
+              
+              addScriptCode('hljs.highlightAll();');
+            } else {
+              const response_p = $('<p>', { text: response[0].content });
+              response_div.append(response_p);
+            }
+
+            blocker.style.height = "30vh";
+            blocker.style.position = "relative";
+          }
+        });
+
+        $("#question").val("");
+        input.style.height="2rem";
+      }
+
+              // Handle the form submission
+              $('#myForm').submit(function(event) {
+                  event.preventDefault();  // Prevent default form submission
+                  var form = $(this);
+                  submitQuery(form);
+              });
+
+
+              // Submit on Enter key press
+              $('#question').keydown(function(event) {
+                  if (event.keyCode === 13 && event.ctrlKey) {
+                      event.preventDefault(); // Prevent the default form submission
+                      var form = $('#myForm');
+                      submitQuery(form);
+                  }
+              });
+
+      function adjustInputHeight() {
+          input.style.height = ""; // Reset the height to calculate the scrollHeight accurately
+          input.style.height = Math.min(input.scrollHeight, 0.4 * window.innerHeight) + "px";
+      }
+
+      // Call the adjustInputHeight function whenever the content of the input field changes
+      document.getElementById("question").addEventListener("input", adjustInputHeight);
+
+    </script>
+  </body>
+</html>

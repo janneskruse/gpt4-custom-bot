@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Login Page</title>
+        <script src="login.js">
+
+                document.getElementById("loginForm").addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent the form from submitting
+
+                var email = document.getElementById("email").value;
+                var password = document.getElementById("password").value;
+
+                // Make an AJAX request to the server to verify login credentials
+                // You can use libraries like Axios or fetch to handle the request
+
+                // Example using fetch:
+                fetch("login_endpoint", {
+                    method: "POST",
+                    body: JSON.stringify({ email: email, password: password }),
+                    headers: {
+                    "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                    // Hide the login page and show the main content
+                    document.getElementById("loginForm").style.display = "none";
+                    // Display the main content or redirect to another page
+                    // ...
+                    } else {
+                    alert("Invalid login credentials. Please try again.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+                });
+        </script>
+    </head>
+
+
+    <body>
+    <h1>Login</h1>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required><br>
+            <button type="submit">Login</button>
+        </form>
+    </body>
+</html>
