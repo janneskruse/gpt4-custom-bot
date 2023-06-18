@@ -40,7 +40,7 @@ pip install mindsdb-sdk
 
 ![](model.png)
 
-Here, you use the following SQL code to create the model, which creates a chatbot 
+Here, you use the following SQL code to create the model, which creates a gpt4 model that we can grasp with teh application 
 
 ```sql
 CREATE MODEL mindsdb.gpt4 --gpt4 is your modelname
