@@ -7,13 +7,18 @@ This project creates a gpt-4 chatbot from [OpenAI's](https://github.com/openai) 
 
 To use the chatbot follow the instructions below!
 
+
+<br>
+<br>
+<br>
+
 ## Installation
 
 The following will need some knowledge in using the command line. If you are stuck with one of the steps, ask chatGPT;P
 
-1. Clone or download the git repository
+### 1. Clone or download the git repository
 
-2. Install the necessary dependencies (python packages). Personally, I would recommend conda or mamba to handle them.
+### 2. Install the necessary dependencies (python packages). Personally, I would recommend conda or mamba to handle them.
 
 - Using pip package manager (conda/mamba install pip):
 
@@ -28,10 +33,10 @@ pip install mindsdb-sdk
 
 - You will need a python interpreter to do so!
 
-3. Create an account at [mindsDB](https://mindsdb.com/) and navigate to your dashboard (going back button)
+### 3. Create an account at [mindsDB](https://mindsdb.com/) and navigate to your dashboard (going back button)
 ![](dashboard.png)
 
-4. Click on the Demo Instance and use the sql editor to create a new model
+### 4. Click on the Demo Instance and use the sql editor to create a new model
 
 ![](model.png)
 
@@ -54,13 +59,13 @@ If you decide to create several models and rename the model (gpt4) bear in mind 
 query = project.query(f'SELECT response from mindsdb.gpt4 WHERE author_username = "mindsdb" AND text="{formatted_conversation}";')
 ```
 
-5. Get back to your command line and navigate inside the cloned/downloaded git repository
+### 5. Get back to your command line and navigate inside the cloned/downloaded git repository
 
 ```bash
 cd gpt-4-costum-bot
 ```
 
-6. Execute the application by running:
+### 6. Execute the application by running:
 
 ```bash
 python app.py
@@ -68,11 +73,22 @@ python app.py
 
 **This will open a browser tab in your default browser where you can now insert the login credentials from mindsDB and boom, yoou are done!**
 
+
+
+<br>
+<br>
+<br>
+
 ## License
 This project is for local usage only. Please dont integrate it in any comercial project! If you decide to use the chat bot or the code in any form of media (e.g. a youtube video), please refer to this repo and name the author: Jannes Kruse.
 
 Apart from that: Happy chatting:D
 
+
+
+<br>
+<br>
+<br>
 
 # External packages and software used in this repo
 
