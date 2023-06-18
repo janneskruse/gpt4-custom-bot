@@ -11,8 +11,6 @@
   </head>
 
   <body>
-
-
       <form id="chat">
           <textarea id="question" type="text" name="input" placeholder="Do you know what's the worst about prison?"  autocomplete="off"></textarea>
           <button id="submit" type="submit">
@@ -47,17 +45,18 @@
     <script>
 
       const login=$("#login")
-      let loggedin=sessionStorage.getItem("mindsdb")
+      let loggedin=sessionStorage.getItem("mindsdb") //get session var for pw and email
       //console.log(JSON.stringify({ "email": loggedin[0], "password": loggedin[1]}))
 
 
+      //login function 
       function loginFun(){
         document.getElementById("loginForm").addEventListener("submit", (event)=> {
             event.preventDefault(); // prevent the form from submitting
 
             var email = $("#email").val();
             var password = $("#password").val();
-            console.log(email,password)
+            //console.log(email,password)
             $("#password").val("");
 
             // Make an AJAX request to the server to verify login credentials
@@ -67,12 +66,14 @@
             data: JSON.stringify({ "email": email, "password": password }),
             contentType: 'application/json', 
             success: function (response) {
-              console.log(response)
+              //console.log(response)
               if(response.success==false){
-                $("#error").show()
+                $("#error").show() //show wrong pw message
               }
               else{
                 //console.log(response)
+
+                //setup project by connecting with password and email
                 $.ajax({
                     type: 'POST',
                     url: '/setup_page',
@@ -80,40 +81,40 @@
                     contentType: 'application/json'
                 });
                 $("#error").hide()
-                //set the local variable mindsdb to password and email inserted
+                //set the local variable mindsdb to the password and email inserted
                 sessionStorage.setItem("mindsdb", [email, password]);
-                login.hide()
+                login.hide() //hide the login screen
               }
 
             },
             error: function(error) {
-              $("#error").show()
+              $("#error").show() //show wrong pw message
             }
           });
         });
       }
 
 
-
+      //if else for session var to check if loggedin
       if(!loggedin){
         loginFun();
       }
       else{
-        loggedin=loggedin.split(",")
+        loggedin=loggedin.split(",") //create string list from session var
         $("#loginField").hide()
         $("#connecting").show()
+        //setup project by connecting with password and email
         $.ajax({
             type: 'POST',
             url: '/setup_page',
             data: JSON.stringify({ "email": loggedin[0], "password": loggedin[1]}),
             contentType: 'application/json',
             success: function (response) {
-              console.log("trying")
               if(response.success==true){
                 login.hide()
               }
               else{
-                loginFun();
+                loginFun(); //if error during connection (password changed or sth) show login again
               }
             }
         });
@@ -122,7 +123,7 @@
 
 
 
-
+      //split the gpt response into text and code
       function splitCodeAndText(text) {
         const codeDelimiter = "```";
         const parts = text.split(codeDelimiter);
@@ -132,18 +133,17 @@
           const part = parts[i].trim();
           
           if (i % 2 === 0) {
-            result.push({ type: "text", content: part });
+            result.push({ type: "text", content: part }); // add text object
           } else {
             const language = part.split(/\s+/)[0];
             const code = part.replace(/^\w+\s*/, "");
-            result.push({ type: "code", language, code });
+            result.push({ type: "code", language, code }); //add code object of language and code
           }
         }
-        
-        return result;
+        return result; //return the dictionary 
       }
 
-
+      //function to add a script object to the DOM 
       function addScriptCode(code) {
         const script = document.createElement('script');
         script.textContent = code;
@@ -152,41 +152,42 @@
 
 
 
-      const input = document.getElementById("question");
+      const input = document.getElementById("question"); //get chat input element
 
+      //create the icons of bot and user
       const mindsdblogo = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
                   <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
                   <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
                   </svg>`;
-
-
       const personallogo = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-globe-americas" viewBox="0 0 16 16"> <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM2.04 4.326c.325 1.329 2.532 2.54 3.717 3.19.48.263.793.434.743.484-.08.08-.162.158-.242.234-.416.396-.787.749-.758 1.266.035.634.618.824 1.214 1.017.577.188 1.168.38 1.286.983.082.417-.075.988-.22 1.52-.215.782-.406 1.48.22 1.48 1.5-.5 3.798-3.186 4-5 .138-1.243-2-2-3.5-2.5-.478-.16-.755.081-.99.284-.172.15-.322.279-.51.216-.445-.148-2.5-2-1.5-2.5.78-.39.952-.171 1.227.182.078.099.163.208.273.318.609.304.662-.132.723-.633.039-.322.081-.671.277-.867.434-.434 1.265-.791 2.028-1.12.712-.306 1.365-.587 1.579-.88A7 7 0 1 1 2.04 4.327Z"/></svg>`;
 
 
 
-      let quests=0
-
+      let quests=0 //quest var to handle blocker container position
+      // function for handeling input when submitted
       function submitQuery(form) {
 
-        const question = $("#question").val();
+        const question = $("#question").val(); //get question/chat input
         const blocker = document.getElementById("blocker");
         const conv_wrapper = $('#conversation');
 
+        //create the question container and add it to the conversation
         const question_div = $('<div>', { class: 'questiondiv' }).appendTo(conv_wrapper);
         $('<div>', { class: 'logobox', html: personallogo }).appendTo(question_div);
         $('<p>', { text: question }).appendTo(question_div);
 
-          const response_div = $('<div>', { class: 'responsediv' }).appendTo(conv_wrapper);
+        //create the response container with waiting animation and add it to the conversation
+        const response_div = $('<div>', { class: 'responsediv' }).appendTo(conv_wrapper);
         $('<div>', { class: 'logobox', html: mindsdblogo }).appendTo(response_div);
-          const spinner = $('<div>', { id: 'spinner', class: 'spinner' });
-          const dot1 = $('<div>', { class: 'dot1' });
-          const dot2 = $('<div>', { class: 'dot2' });
-          const dot3 = $('<div>', { class: 'dot3' });
+        const spinner = $('<div>', { id: 'spinner', class: 'spinner' });
+        const dot1 = $('<div>', { class: 'dot1' });
+        const dot2 = $('<div>', { class: 'dot2' });
+        const dot3 = $('<div>', { class: 'dot3' });
+        spinner.append(dot1, dot2, dot3);
+        response_div.append(spinner);
+        spinner.show();
 
-          spinner.append(dot1, dot2, dot3);
-          response_div.append(spinner);
-          spinner.show();
-
+        //handle blocker container position and height (pure design)
         blocker.style.height = "20vh";
         blocker.style.bottom = 0;
         if (quests == 0) {
@@ -200,18 +201,26 @@
           url: '/submit',
           data: { question: question },
           success: function (response) {
-              spinner.hide();
-            const split = splitCodeAndText(response);
+            spinner.hide(); //on response hide waiting animation
+            const split = splitCodeAndText(response); //call split function on response
             console.log(split);
-            if (split.length > 0) {
-              const fragment = document.createDocumentFragment();
 
-              for (let i = 0; i < split.length; i++) {
+            
+            if (split.length > 0) { //if response more than single text
+              const fragment = document.createDocumentFragment(); //create a document fragment for the code as its lightweight making the code faster
+
+              for (let i = 0; i < split.length; i++) { //for all objects in the splitted response
                   const item = split[i];
-                if (item.type == "code") {
+                if (item.type == "code") { //for all the code elements in the response
                   const codecell = $('<div>', { class: 'code-cell' });
+                  fragment.appendChild(codecell[0]);
+
+                  //code cell header
                   const header = $('<div>', { class: 'code-header' });
+                  codecell.append(header);
                   $('<p>', { text: item.language }).appendTo(header);
+
+                  //copy to clipboard functionality for header
                   const copyButton = $('<button>', { text: 'Copy to Clipboard' }).appendTo(header);
                   header.on('click', 'button', function () {
                     navigator.clipboard.writeText(item.code);
@@ -220,36 +229,40 @@
                           copyButton.text('Copy to Clipboard');
                       }, 3000);
                   });
-                  codecell.append(header);
+                  
+                  // code content cell
                   const codecontent = $('<div>', { class: 'code-content' });
+                  codecell.append(codecontent);
                   const preElement = $('<pre>');
-                  const codeElement = $('<code>', { class: item.language + ' code', text: item.code });
+                  const codeElement = $('<code>', { class: item.language + ' code', text: item.code }); //the actual code passed
                   preElement.append(codeElement);
                   codecontent.append(preElement);
-                  codecell.append(codecontent);
-                  fragment.appendChild(codecell[0]);
-                  response_div.append(fragment);
-                } else {
+                  response_div.append(fragment); //append the code to the response container
+                } 
+                else { //for all the text elements in the response
                   const response_p = $('<p>', { text: item.content });
-                  response_div.append(response_p);
+                  response_div.append(response_p); //append the text to the response container
                 }
               };
-
-              
-              addScriptCode('hljs.highlightAll();');
-            } else {
+              addScriptCode('hljs.highlightAll();'); //highlight all the code with highlight js
+            } 
+            else { //if response single text
               const response_p = $('<p>', { text: response[0].content });
-              response_div.append(response_p);
+              response_div.append(response_p); //append the text to the response container
             }
 
+
+            //handle size and position of blocker container
             blocker.style.height = "30vh";
             blocker.style.position = "relative";
           }
         });
 
-        $("#question").val("");
-        input.style.height="2rem";
-      }
+        $("#question").val(""); //set question textarea back to no input
+        input.style.height="2rem"; //set textarea height back to default height
+      } //closing submit query function
+
+
 
       // Handle the form submission
       $('#myForm').submit(function(event) {
@@ -268,6 +281,7 @@
           }
       });
 
+      //fucntion to adjust the input textarea depending on the size of the input
       function adjustInputHeight() {
           input.style.height = ""; // Reset the height to calculate the scrollHeight accurately
           input.style.height = Math.min(input.scrollHeight, 0.4 * window.innerHeight) + "px";

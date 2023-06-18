@@ -32,7 +32,7 @@ threshold = [25000,1024 * 1024] #set threshold to 25000 characters and 1mb stora
 
 @app.route("/setup_page", methods=["POST"])
 def setupConnection():
-    global project, conversation  # Use the global keyword to update the global variables
+    global project, conversation  # Use global keyword to update the vars
     try:
         email = request.json["email"]
         password = request.json["password"]
@@ -102,6 +102,7 @@ def call_chattie(question):
             return "An unexpected error occurred. Please try again later."
 
 
+#Handeling the chat input
 @app.route('/submit', methods=['POST'])
 def submit():
     # Get the data from the chat
@@ -109,6 +110,8 @@ def submit():
     response = call_chattie(input_data) # Call the call_chattie function with the input data
     
     return response
+
+
 
 def run_flask_server():
     app.run()
