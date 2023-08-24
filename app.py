@@ -124,7 +124,7 @@ if __name__ == '__main__':
     ## Run the Flask server in a separate thread to avoid opening the url twice
     #server_thread = threading.Thread(target=run_flask_server)
     #server_thread.start()
-    os.system(f"python -m webbrowser -t {url}")
+    os.system(f"python -m webbrowser -t {url}") #open browser with gpt4
     app.run()
 
 
