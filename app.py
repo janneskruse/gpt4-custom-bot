@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import mindsdb_sdk
 import sys
+import os
 import threading
 import webbrowser
 
@@ -113,15 +114,17 @@ def submit():
 
 
 
-def run_flask_server():
-    app.run()
+##def run_flask_server():
+##    app.run()
 
 if __name__ == '__main__':
     url = "http://127.0.0.1:5000/"
-    # Open the URL in the web browser
+    ## Open the URL in the web browser
     webbrowser.open(url)
-    # Run the Flask server in a separate thread to avoid opening the url twice
-    server_thread = threading.Thread(target=run_flask_server)
-    server_thread.start()
+    ## Run the Flask server in a separate thread to avoid opening the url twice
+    #server_thread = threading.Thread(target=run_flask_server)
+    #server_thread.start()
+    #os.system(f"python -m webbrowser -t {url}")
+    app.run()
 
 
