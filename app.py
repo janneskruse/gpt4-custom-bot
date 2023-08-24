@@ -118,7 +118,7 @@ def submit():
 ##    app.run()
 
 if __name__ == '__main__':
-    url = "http://127.0.0.1:5000/" #the local host
+    url = "http://127.0.0.1:5000/" #the local host for the app
     ## Open the URL in the web browser
     #webbrowser.open(url)
     ## Run the Flask server in a separate thread to avoid opening the url twice
